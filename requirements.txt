@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+google-cloud-bigquery
+langchain-community
+langchain-openai
+openai
+python-multipart
+pydantic
+jinja2
+sqlalchemy
+langchain-core

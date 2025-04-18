@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="progress-steps">
+        <div class="step active">1. Configuration</div>
+        <div class="step">2. Sélection</div>
+        <div class="step">3. API Key</div>
+        <div class="step">4. Requête</div>
+    </div>
+
+    <div class="card">
+        <h2>🔹 Étape 1 : Configuration BigQuery</h2>
+        
+        {% if error %}
+        <div class="alert error">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/upload-json" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">Fichier JSON de configuration</label>
+                <input type="file" id="file" name="file" accept=".json" required>
+                <p class="help-text">Téléchargez votre fichier de service account Google Cloud</p>
+            </div>
+            
+            <button type="submit" class="btn primary">Suivant ▶️</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

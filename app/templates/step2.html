@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>🔹 Sélection des données</h2>
+    
+    <form method="post" action="/select-dataset">
+        <div class="form-group">
+            <label for="project_name">Nom du projet</label>
+            <input type="text" id="project_name" name="project_name" required 
+                   value="{{ session.get('project_name', '') }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="dataset">Dataset</label>
+            <select id="dataset" name="dataset" required>
+                {% for dataset_option in datasets %}
+                <option value="{{ dataset_option }}" 
+                        {% if dataset_option == session.get('dataset', '') %}selected{% endif %}>
+                    {{ dataset_option }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="table">Table</label>
+            <select id="table" name="table" required>
+                {% for table_option in session.get('tables', []) %}
+                <option value="{{ table_option }}">{{ table_option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" class="btn primary">Suivant ▶️</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('dataset').addEventListener('change', async function() {
+        const dataset = this.value;
+        console.log(`Dataset sélectionné: ${dataset}`);  // Log pour débogage
+        
+        try {
+            const response = await fetch(`/api/tables?dataset=${encodeURIComponent(dataset)}`);
+            const data = await response.json();
+            
+            console.log("Réponse API:", data);  // Log pour débogage
+            
+            const tableSelect = document.getElementById('table');
+            tableSelect.innerHTML = '';
+            
+            if (data.tables && data.tables.length > 0) {
+                data.tables.forEach(table => {
+                    const option = document.createElement('option');
+                    option.value = table;
+                    option.textContent = table;
+                    tableSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.textContent = "Aucune table trouvée";
+                tableSelect.appendChild(option);
+            }
+        } catch (error) {
+            console.error("Erreur lors du chargement des tables:", error);
+        }
+    });
+    </script>
+{% endblock %}

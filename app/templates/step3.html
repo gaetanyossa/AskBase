@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>🔹 Configuration OpenAI</h2>
+    
+    <form method="post" action="/set-api-key">
+        <div class="form-group">
+            <label for="api_key">Clé API OpenAI</label>
+            <input type="password" id="api_key" name="api_key" required>
+            <p class="help-text">Obtenez votre clé sur platform.openai.com</p>
+        </div>
+        
+        <button type="submit" class="btn primary">Suivant ▶️</button>
+    </form>
+</div>
+{% endblock %}

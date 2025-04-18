@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouBase - BigQuery Natural Language</title>
+    <link href="/static/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 YouBase</h1>
+            <p>Interrogez vos données BigQuery en langage naturel</p>
+        </header>
+
+        <div class="progress-steps">
+            <div class="step {% if step >= 1 %}active{% endif %}">1. Configuration</div>
+            <div class="step {% if step >= 2 %}active{% endif %}">2. Sélection</div>
+            <div class="step {% if step >= 3 %}active{% endif %}">3. API Key</div>
+            <div class="step {% if step >= 4 %}active{% endif %}">4. Requête</div>
+        </div>
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>
