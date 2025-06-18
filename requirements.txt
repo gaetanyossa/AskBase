@@ -9,3 +9,6 @@ pydantic
 jinja2
 sqlalchemy
 langchain-core
+pandas
+db-dtypes
+logging

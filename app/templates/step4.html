@@ -2,44 +2,168 @@
 
 {% block content %}
 <div class="card">
-    <h2>🔹 Analyse intelligente</h2>
-    
+    <h2>🧠 Analyse de données</h2>
+
     <form method="post" action="/process-query">
         <div class="form-group">
-            <label for="prompt">Votre question analytique</label>
+            <label for="prompt">Posez votre question</label>
             <textarea id="prompt" name="prompt" rows="4" required></textarea>
-            <p class="help-text">
-                Dataset actif: <strong>{{ session.dataset }}</strong>
-            </p>
         </div>
-        <button type="submit" class="btn primary">🧠 Analyser</button>
+        <button type="submit" class="btn primary">Analyser</button>
     </form>
 
     {% if error %}
-    <div class="alert error">{{ error }}</div>
+        <div class="alert error">{{ error }}</div>
     {% endif %}
 
     {% if result %}
-    <div class="schema-info">
-        <h3>📊 Table sélectionnée: {{ result.selected_table }}</h3>
-        <div class="tables-container">
-            {% for table in result.tables_info %}
-            <div class="table-card {% if table.name == result.selected_table %}active-table{% endif %}">
-                <h4>{{ table.name }}</h4>
-                <ul>
-                    {% for column in table.columns %}
-                    <li>{{ column.name }} ({{ column.type }})</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
+        <h3>🦾 Requête SQL générée</h3>
+        <pre style="white-space: pre-wrap; word-wrap: break-word;">{{ result.query }}</pre>
 
-    <div class="query-result">
-        <h3>🔍 Résultats</h3>
-        <pre>{{ result.response }}</pre>
-    </div>
+        {% set is_time_axis = result.x_axis.lower().startswith('date') or 'date' in result.x_axis.lower() %}
+
+        {% if result.chart_type and result.data %}
+            <h3>📊 Visualisation</h3>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="chartTypeSelect">Changer le type de graphique :</label>
+                <select id="chartTypeSelect">
+                    {% if is_time_axis %}
+                        <option value="line" selected>📈 Courbe</option>
+                        <option value="bar">📊 Barres</option>
+                    {% else %}
+                        <option value="bar" selected>📊 Barres</option>
+                        {% if result.data|length <= 10 %}
+                            <option value="pie">🥧 Camembert</option>
+                        {% endif %}
+                    {% endif %}
+                </select>
+            </div>
+
+            <canvas id="chart" height="200"></canvas>
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1"></script>
+
+            <script>
+                const data = {{ result.data | tojson }};
+                const xKey = "{{ result.x_axis }}";
+                const yKey = "{{ result.y_axis }}";
+                const title = "{{ result.title }}";
+                const isTimeAxis = xKey.toLowerCase().includes("date");
+
+                const labels = data.map(row => row[xKey]);
+                const values = data.map(row => row[yKey]);
+
+                const ctx = document.getElementById("chart");
+                let chart;
+
+                function buildChart(type) {
+                    if (chart) chart.destroy();
+
+                    chart = new Chart(ctx, {
+                        type: type,
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: title,
+                                data: values,
+                                backgroundColor: type === 'pie'
+                                    ? ['#4285F4', '#FBBC05', '#34A853', '#EA4335', '#A142F4', '#F06292']
+                                    : "rgba(66, 133, 244, 0.15)",
+                                borderColor: "#4285F4",
+                                pointBackgroundColor: "#1a73e8",
+                                borderWidth: 2,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: type !== 'pie' && isTimeAxis ? {
+                                x: {
+                                    type: 'time',
+                                    time: {
+                                        parser: 'yyyy-MM-dd',
+                                        unit: 'day',
+                                        tooltipFormat: 'dd LLL yyyy',
+                                        displayFormats: {
+                                            day: 'dd MMM',
+                                            month: 'MMM yyyy'
+                                        }
+                                    },
+                                    adapters: {
+                                        date: { locale: 'fr' }
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: xKey
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: yKey
+                                    }
+                                }
+                            } : {},
+                            plugins: {
+                                legend: { display: true, position: 'bottom' },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: '#1a73e8',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff'
+                                }
+                            },
+                            elements: {
+                                line: { tension: 0.4, borderWidth: 3 },
+                                point: { radius: 3, hoverRadius: 6 }
+                            }
+                        }
+                    });
+                }
+
+                const defaultType = isTimeAxis ? "line" : "bar";
+                buildChart(defaultType);
+
+                document.getElementById("chartTypeSelect").addEventListener("change", function () {
+                    buildChart(this.value);
+                });
+            </script>
+        {% endif %}
+
+        {% if result.analysis %}
+            <h3>🧠 Analyse GPT</h3>
+            <div class="card" style="background: #f9fafc; border-left: 4px solid #3b82f6;">
+                <p style="margin: 0; font-size: 15px; color: #374151;">
+                    {{ result.analysis }}
+                </p>
+            </div>
+        {% endif %}
+
+        {% if result.data %}
+            <h3>📋 Données brutes</h3>
+            <table>
+                <thead>
+                    <tr>
+                        {% for col in result.columns %}<th>{{ col }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in result.data %}
+                        <tr>
+                            {% for col in result.columns %}
+                                <td>{{ row[col] }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
     {% endif %}
 </div>
 {% endblock %}

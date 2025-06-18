@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>📝 Requête SQL manuelle</h2>
+
+    <form method="post" action="/query">
+        <div class="form-group">
+            <label>Clé API OpenAI</label>
+            <input type="text" name="openai_key" required value="{{ openai_key or '' }}">
+        </div>
+
+        <div class="form-group">
+            <label>Service Account JSON</label>
+            <textarea name="service_account_json" rows="6" required>{{ service_account_json or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Dataset BigQuery</label>
+            <input type="text" name="dataset_name" required value="{{ dataset_name or '' }}">
+        </div>
+
+        <div class="form-group">
+            <label>Requête SQL</label>
+            <textarea name="query" rows="5" required>{{ query or '' }}</textarea>
+        </div>
+
+        <button type="submit" class="btn primary">Exécuter</button>
+    </form>
+
+    {% if error %}
+        <div class="alert error">{{ error }}</div>
+    {% endif %}
+
+    {% if success %}
+        <div class="alert success">{{ success }}</div>
+    {% endif %}
+
+    {% if visualize %}
+    <h3>📊 Visualisation automatique</h3>
+    <canvas id="manualChart" height="200"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const data = {{ data | tojson }};
+        const labels = data.map(row => row["{{ x_axis }}"]);
+        const values = data.map(row => row["{{ y_axis }}"]);
+
+        new Chart(document.getElementById("manualChart"), {
+            type: "{{ chart_type }}",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "{{ title }}",
+                    data: values,
+                    backgroundColor: 'rgba(66,133,244,0.5)',
+                    borderColor: '#4285F4',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+
+    {% if data %}
+    <h3>📋 Résultats</h3>
+    <table>
+        <thead>
+            <tr>
+                {% for col in columns %}
+                <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                {% for col in columns %}
+                <td>{{ row[col] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endblock %}

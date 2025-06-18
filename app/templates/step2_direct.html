@@ -1,6 +1,17 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="card">
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Sélection des données</title>
+    <style>
+        body { font-family: sans-serif; padding: 2rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { font-weight: bold; display: block; margin-bottom: 0.5rem; }
+        select, input { width: 100%; padding: 0.5rem; }
+        .btn { padding: 0.75rem 1.5rem; background-color: #007bff; color: white; border: none; }
+    </style>
+</head>
+<body>
     <h2>🔹 Sélection des données</h2>
 
     <form method="post" action="/select-dataset">
@@ -34,30 +45,30 @@
             </select>
         </div>
 
-        <button type="submit" class="btn primary">Suivant ▶️</button>
+        <button type="submit" class="btn">Suivant ▶️</button>
     </form>
-</div>
 
-<script>
-document.getElementById('dataset').addEventListener('change', async function () {
-    const dataset = this.value;
-    const response = await fetch(`/api/tables?dataset=${encodeURIComponent(dataset)}`);
-    const data = await response.json();
-    const tableSelect = document.getElementById('table');
-    tableSelect.innerHTML = '';
+    <script>
+    document.getElementById('dataset').addEventListener('change', async function () {
+        const dataset = this.value;
+        const response = await fetch(`/api/tables?dataset=${encodeURIComponent(dataset)}`);
+        const data = await response.json();
+        const tableSelect = document.getElementById('table');
+        tableSelect.innerHTML = '';
 
-    if (data.tables && data.tables.length > 0) {
-        data.tables.forEach(table => {
+        if (data.tables && data.tables.length > 0) {
+            data.tables.forEach(table => {
+                const option = document.createElement('option');
+                option.value = table;
+                option.textContent = table;
+                tableSelect.appendChild(option);
+            });
+        } else {
             const option = document.createElement('option');
-            option.value = table;
-            option.textContent = table;
+            option.textContent = "Aucune table trouvée";
             tableSelect.appendChild(option);
-        });
-    } else {
-        const option = document.createElement('option');
-        option.textContent = "Aucune table trouvée";
-        tableSelect.appendChild(option);
-    }
-});
-</script>
-{% endblock %}
+        }
+    });
+    </script>
+</body>
+</html>
