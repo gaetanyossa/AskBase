@@ -1,1 +1,1 @@
-![alt text](<Capture d'écran 2025-06-18 154730-1.png>)
+![Aperçu de l'application](images/Capture d'écran 2025-06-18 154730.png)
